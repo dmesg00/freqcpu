@@ -41,7 +41,7 @@ sudo systemctl enable freqcpu
 ## How to install:
 
 ```
-git clone https://github.com/asdo92/freqcpu
+git clone https://github.com/dmesg00/freqcpu
 cd freqcpu
 sudo make install
 ```
@@ -49,7 +49,7 @@ sudo make install
 ## How to uninstall:
 
 ```
-git clone https://github.com/asdo92/freqcpu
+git clone https://github.com/dmesg00/freqcpu
 cd freqcpu
 sudo make uninstall 
 ```
