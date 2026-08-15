@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+
+setopt SH_WORD_SPLIT NO_NOMATCH
 
 # Configuration file
 config_file=/etc/freqcpu/freqcpu.conf
@@ -14,16 +16,16 @@ governor=$(cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 2> /dev/nul
 dependencies_not_found=$(which cpupower cpufreq-set | head -1)
 detected=$(basename ${dependencies_not_found} 2> /dev/null)
 # Show if all tools are installed
-if [ -z "$dependencies_not_found" ] ; then
+if [[ -z "$dependencies_not_found" ]] ; then
   echo "$(basename $0): Dependency not found: cpupower or cpufreq-set (cpufrequtils)"
   exit 1
 fi
 
 # Function to check root permissions
-function check_root() {
+check_root() {
   mkdir -p /etc/root 2> /dev/null
   rootperm=$?
-  if [ $rootperm -eq 0 ] ; then
+  if (( $rootperm == 0 )) ; then
     rm -rf /etc/root
   else
     echo "$(basename $0): Root permission is required to perform this operation"
@@ -31,9 +33,9 @@ function check_root() {
   fi
 }
 
-function help() {
+help() {
   echo ""
-  if [ -f ${config_file} ] ; then
+  if [[ -f ${config_file} ]] ; then
     source ${config_file}
   fi
   echo "$(basename $0) - limit CPU frequency (${detected})"
@@ -57,7 +59,7 @@ function help() {
   exit 0
 }
 
-function create_config() {
+create_config() {
   mkdir -p /etc/freqcpu
   echo "cores_cpu=${cores_cpu} # Set number of CPUs" > ${config_file}
   echo "freq_min=${freq_min}" >> ${config_file} 
@@ -67,8 +69,8 @@ function create_config() {
   exit 0
 }
 
-function check_config() {
-  if [ -f ${config_file} ] ; then
+check_config() {
+  if [[ -f ${config_file} ]] ; then
     source ${config_file}
   else
     echo "$(basename $0): no configuration file exists in /etc/freqcpu/freqcpu.conf"
@@ -78,7 +80,7 @@ function check_config() {
 }
 
 # Run commands
-if [ "${1}" == "-d" ] ; then
+if [[ "${1}" == "-d" ]] ; then
   check_root
   check_config
   source ${config_file}
@@ -87,13 +89,13 @@ if [ "${1}" == "-d" ] ; then
   frecuency=0
   num_cpus_total=$(expr ${cores_cpu} - 1)
   num_cpu=0
-  while [ ${frecuency} -eq 0 ] ; do
-    while [ ${num_cpu} -le ${num_cpus_total} ] ; do
+  while (( ${frecuency} == 0 )) ; do
+    while (( ${num_cpu} <= ${num_cpus_total} )) ; do
       echo "set CPU ${num_cpu} freq (${freq_min}/${freq_max}) (governor: ${governor})"
-      if [ "${detected}" == "cpufreq-set" ] ; then
+      if [[ "${detected}" == "cpufreq-set" ]] ; then
         cpufreq-set --cpu ${num_cpu} --min ${freq_min} --max ${freq_max} --governor ${governor}
       fi
-      if [ "${detected}" == "cpupower" ] ; then
+      if [[ "${detected}" == "cpupower" ]] ; then
         cpupower --cpu ${num_cpu} frequency-set --min ${freq_min} --max ${freq_max} --governor ${governor}
       fi
       num_cpu=$(expr ${num_cpu} + 1)
@@ -101,33 +103,32 @@ if [ "${1}" == "-d" ] ; then
     sleep 3600
     num_cpu=0
   done
-elif [ "${1}" == "-c" ] ; then
+elif [[ "${1}" == "-c" ]] ; then
   check_root
   create_config
-elif [ "${1}" == "-r" ] ; then
+elif [[ "${1}" == "-r" ]] ; then
   check_root
   check_config
   source ${config_file}
   num_cpus_total=$(expr ${cores_cpu} - 1)
   num_cpu=0
-  while [ ${num_cpu} -le ${num_cpus_total} ] ; do
+  while (( ${num_cpu} <= ${num_cpus_total} )) ; do
     echo "set CPU ${num_cpu} freq (${freq_min}/${freq_max}) (governor: ${governor})"
-    if [ "${detected}" == "cpufreq-set" ] ; then
+    if [[ "${detected}" == "cpufreq-set" ]] ; then
       cpufreq-set --cpu ${num_cpu} --min ${freq_min} --max ${freq_max} --governor ${governor}
     fi
-    if [ "${detected}" == "cpupower" ] ; then
+    if [[ "${detected}" == "cpupower" ]] ; then
       cpupower --cpu ${num_cpu} frequency-set --min ${freq_min} --max ${freq_max} --governor ${governor}
     fi
     num_cpu=$(expr ${num_cpu} + 1)
   done
-elif [ "${1}" == "-f" ] ; then
+elif [[ "${1}" == "-f" ]] ; then
   watch -n1 "cat /proc/cpuinfo | grep \"^[c]pu MHz\""
-elif [ "${1}" == "-g" ] ; then
+elif [[ "${1}" == "-g" ]] ; then
   cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 2> /dev/null | head -1
-elif [ "${1}" == "-o" ] ; then
+elif [[ "${1}" == "-o" ]] ; then
   grep -c ^processor /proc/cpuinfo 2> /dev/null
 else
   help
 fi
-
 
