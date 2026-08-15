@@ -55,7 +55,7 @@ sudo make uninstall
 ```
 
 ## Dependencies
-* bash
+* zsh
 * cpupower or cpufrequtils
 * watch
 
